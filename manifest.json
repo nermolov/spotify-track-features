@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "spotify track features",
+  "version": "1.0.0",
+  "author": "tnrlr",
+  "description": "display the track features in the open.spotify.com UI",
+  "content_scripts": [
+    {
+      "js": ["src/content.js"],
+      "matches": [
+        "https://open.spotify.com/*"
+      ]
+    }
+  ]
+}
