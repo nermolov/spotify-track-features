@@ -1,12 +1,35 @@
-const CLIENT_ID = '902e93fb13544734b7e97a7903c702b5';
-const CLIENT_SECRET = 'de1ef3466023492d9010ae30d0a257f9';
+// ==UserScript==
+// @name         spotify track features
+// @namespace    https://tnrlr.xyz
+// @author       tnrlr
+// @version      1.0.0
+// @description  displays spotify track audio features
+// @match        https://open.spotify.com/*
+// @updateURL    https://tnrlr.xyz/spotify-track-features/spotify-track-features.user.js
+// @downloadURL  https://tnrlr.xyz/spotify-track-features/spotify-track-features.user.js
+// @grant        GM_setValue
+// @grant        GM_getValue
+// ==/UserScript==
+
+declare function GM_setValue(key: string, value: string): string;
+declare function GM_getValue(key: string, defaultValue: string): string;
+
+// function GM_setValue(key: string, value: string) {
+//   return 'CHANGE ME';
+// }
+// function GM_getValue(key: string, defaultValue: string) {
+//   return 'CHANGE ME';
+// }
+
+const CLIENT_ID = GM_getValue('client_id', 'CHANGE ME');
+const CLIENT_SECRET = GM_getValue('client_secret', 'CHANGE ME');
 
 const DEBOUNCE_MS = 1500;
 const AUTH_STORAGE_KEY = 'spotify-track-features-authorization';
 const LOGGING_PREFIX = 'spotify-track-features:';
 
 // from https://en.wikipedia.org/wiki/Pitch_class
-const pitchMap = [
+const PITCH_MAP = [
   'C',
   'Db',
   'D',
@@ -136,7 +159,7 @@ async function getAndAddLabels(nodes: HTMLAnchorElement[]) {
   } = await res.json();
 
   batchResponse.audio_features.forEach((features) => {
-    const pitch = pitchMap[features.key];
+    const pitch = PITCH_MAP[features.key];
     const tempo = features.tempo.toFixed(2);
 
     const featureString = `${pitch} - ${tempo}bpm`;
@@ -145,6 +168,40 @@ async function getAndAddLabels(nodes: HTMLAnchorElement[]) {
 }
 
 async function main() {
+  if (CLIENT_ID === 'CHANGE ME' || CLIENT_SECRET === 'CHANGE ME') {
+    GM_setValue('client_id', 'CHANGE ME');
+    GM_setValue('client_secret', 'CHANGE ME');
+
+    log('client_id and/or client_secret not set!');
+
+    const errorEl = document.createElement('div');
+    errorEl.setAttribute(
+      'style',
+      `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 100;
+      background-color: red;
+      color: white;
+      padding: 20px;
+      display: block;
+    `
+    );
+    errorEl.innerHTML = `
+    <p>
+      spotify track features missing configuration!<br/>
+    </p>
+    <p>
+      to remove this error, follow <a href="https://tnrlr.xyz/spotify-track-features/" style="text-decoration: underline;">configuration instructions</a><br />
+      or uninstall if you have no need for this userscript.
+    </p>
+    `;
+    document.body.appendChild(errorEl);
+
+    return;
+  }
+
   let nodesToBatch: HTMLAnchorElement[] = [];
   let timeout: number | null = null;
 
